@@ -1,4 +1,3 @@
-[23:10] Eduard-Claudiu CIUREZU (101147)
 import tweepy
 from tweepy.streaming import StreamingClient
 from kafka.producer import KafkaProducer
