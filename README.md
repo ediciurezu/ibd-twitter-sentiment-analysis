@@ -2,11 +2,9 @@
  Twitter Sentiment Analysis on Big Data in Spark Framework
 
 
-## Run zookeeper:
-$ bin/zookeeper-server-start.sh config/zookeeper.properties
+## Run kafka:
+cd extra/docker-compose/stack
+docker-compose up
 
-Another terminal:
-$ bin/kafka-server-start.sh config/server.properties
-
-## Create a topic:
-$ bin/kafka-topics.sh --create --topic quickstart-events --bootstrap-server localhost:9092
+localhost:9000 - Kafdrop UI endopoint
+Create topic twitter-streaming-topic
