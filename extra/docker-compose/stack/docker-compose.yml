@@ -1,0 +1,31 @@
+version: '2.4'
+
+services:
+  zookeeper:
+    extends:
+      file: zookeeper/compose.yml
+      service: zookeeper
+
+  kafka:
+    extends:
+      file: kafka/compose.yml
+      service: kafka
+    depends_on:
+      - zookeeper
+    links:
+      - zookeeper:zookeeper
+
+  kafka_ui:
+    extends:
+      file: kafka/compose.yml
+      service: kafka_ui
+    depends_on:
+      - kafka
+    links:
+      - kafka:kafka
+
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
