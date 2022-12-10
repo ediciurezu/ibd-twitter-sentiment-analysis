@@ -1,5 +1,6 @@
 ## Create python virtual environment:
 cd /app/backend
+
 python3 -m venv /virtualenv
 
 ## Activate python virtual environment:
