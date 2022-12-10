@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-
-
+import TweetsDashboard from "./dashboard";
 
 const App = () => {
   // Define the endpoint for the JSON data
@@ -26,11 +25,12 @@ const App = () => {
   return (
       <div>
         {/* Display a button to fetch the data */}
-        <button onClick={fetchData}>Fetch Data</button>
+        <button onClick={fetchData}>Refresh</button>
 
         {/* If the data is available, display it in a dashboard */}
         {data && (
-            <Dashboard data={data} />
+            // <Dashboard data={data} />
+            <TweetsDashboard data={data} />
         )}
       </div>
   );
@@ -38,14 +38,12 @@ const App = () => {
 
 
 
-const Dashboard = ({ data }) => (
-    <div>
-      {/* Display the data from the JSON endpoint in the dashboard */}
-      <h1>{data[0].id}</h1>
-      <p>{data[0].text}</p>
-    </div>
-);
-
-
+// const Dashboard = ({ data }) => (
+//     <div>
+//       {/* Display the data from the JSON endpoint in the dashboard */}
+//       <h1>{data[0].id}</h1>
+//       <p>{data[0].text}</p>
+//     </div>
+// );
 
 export default App;
