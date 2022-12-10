@@ -1,8 +1,10 @@
 from flask import Flask
 import boto3
 import json
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_file("config.json", load=json.load)
 
 # Get config data
