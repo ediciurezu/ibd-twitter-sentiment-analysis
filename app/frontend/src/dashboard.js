@@ -18,7 +18,6 @@ const useStyles = makeStyles(theme => ({
 const TweetsDashboard = ({data}) => {
     const classes = useStyles();
 
-
     return (
         <div className={classes.root}>
             <Grid container spacing={3}>
@@ -30,9 +29,11 @@ const TweetsDashboard = ({data}) => {
                 <Grid item xs={6}>
                     <Paper className={classes.paper}>
                         <Typography variant="h6">Statistics</Typography>
-                        <Typography>Total tweets: 25</Typography>
-                        <Typography>Positive Tweets:{data[0].id}</Typography>
-                        <Typography>Negative Tweets:{data[0].text}</Typography>
+                        <Typography>Total tweets: {data.statistics.total}</Typography>
+                        <Typography>Positive Tweets:{data.statistics.positive}</Typography>
+                        <Typography>Negative Tweets:{data.statistics.negative}</Typography>
+                        <Typography>Positive:{data.positive_tweets}</Typography>
+                        <Typography>Negative:{data.negative_tweets}</Typography>
                     </Paper>
                 </Grid>
                 <Grid item xs={6}>

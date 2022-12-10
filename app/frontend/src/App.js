@@ -4,9 +4,7 @@ import TweetsDashboard from "./dashboard";
 
 const App = () => {
   // Define the endpoint for the JSON data
-  const endpoint = 'http://127.0.0.1:5000/read/model.json';
-
-
+  const endpoint = 'http://127.0.0.1:5000/statistics';
 
   // Use React state to store the data from the endpoint
   const [data, setData] = useState(null);
@@ -20,8 +18,6 @@ const App = () => {
         .catch(error => console.error(error));
   };
 
-
-
   return (
       <div>
         {/* Display a button to fetch the data */}
@@ -29,21 +25,10 @@ const App = () => {
 
         {/* If the data is available, display it in a dashboard */}
         {data && (
-            // <Dashboard data={data} />
             <TweetsDashboard data={data} />
         )}
       </div>
   );
 };
-
-
-
-// const Dashboard = ({ data }) => (
-//     <div>
-//       {/* Display the data from the JSON endpoint in the dashboard */}
-//       <h1>{data[0].id}</h1>
-//       <p>{data[0].text}</p>
-//     </div>
-// );
 
 export default App;
