@@ -1,16 +1,18 @@
 import threading
 
+
 class TwitterFilteringTask(threading.Thread):
     def __init__(self, unprocessed_tweets: list, sentiment: int):
-         super(TwitterFilteringTask, self).__init__()
-         self.unprocessed_tweets = unprocessed_tweets
-         self.sentiment = sentiment
+        super(TwitterFilteringTask, self).__init__()
+        self.result = None
+        self.unprocessed_tweets = unprocessed_tweets
+        self.sentiment = sentiment
 
     def run(self):
         self.result = list(
             map(lambda tweet: tweet['tweet_text'],
                 filter(lambda tweet: tweet['sentiment'] == self.sentiment, self.unprocessed_tweets)
-            )
+                )
         )
 
     def get_data(self):
@@ -18,8 +20,8 @@ class TwitterFilteringTask(threading.Thread):
 
 
 # Used to process tweet-related information and turn it into statistics
-class TweetProcesser:
-    
+class TweetProcessor:
+
     @staticmethod
     def get_statistics(unprocessed_tweets: list) -> dict:
         '''
@@ -45,13 +47,13 @@ class TweetProcesser:
 
         positive_tweets_count = len(positive_tweets)
         negative_tweets_count = total_tweets - positive_tweets_count
-            
+
         return {
             'statistics': {
                 'total': total_tweets,
                 'positive': positive_tweets_count,
                 'negative': negative_tweets_count
-            }, 
-            'positive_tweets': positive_tweets,
-            'negative_tweets': negative_tweets
+            },
+            'positive_tweets': positive_tweets[-50:],
+            'negative_tweets': negative_tweets[-50:]
         }

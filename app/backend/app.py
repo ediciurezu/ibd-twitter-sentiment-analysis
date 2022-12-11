@@ -3,7 +3,7 @@ import boto3
 import json
 from flask_cors import CORS
 
-from tweet_processer import TweetProcesser
+from tweet_processer import TweetProcessor
 
 app = Flask(__name__)
 CORS(app)
@@ -54,8 +54,7 @@ def read_all_data():
 @app.route('/statistics', methods=['GET'])
 def get_statistics():
     unprocessed_tweets = read_all_data()
-    return TweetProcesser.get_statistics(unprocessed_tweets)
-
+    return TweetProcessor.get_statistics(unprocessed_tweets)
 
 if __name__ == '__main__':
     app.run()
