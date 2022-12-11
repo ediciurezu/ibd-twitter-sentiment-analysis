@@ -1,7 +1,8 @@
+from pyspark.ml import Pipeline
 from pyspark.sql import SparkSession
-from pyspark.ml.classification import NaiveBayes
+from pyspark.ml.classification import NaiveBayes, LogisticRegression, RandomForestClassifier, DecisionTreeClassifier
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.ml.feature import HashingTF, Tokenizer, StopWordsRemover
+from pyspark.ml.feature import HashingTF, Tokenizer, IDF, StopWordsRemover, CountVectorizer, StringIndexer
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from bs4 import BeautifulSoup
@@ -25,93 +26,77 @@ tweets_csv = spark \
     .read.format("csv") \
     .option("header", "false") \
     .schema(schema) \
-    .csv("../data/training.1600000.processed.noemoticon.csv")
+    .csv("../data/training.1600000.processed.noemoticon.csv") \
+    .select("*") \
+    .orderBy(rand()) \
+    # .limit(50000)
 
-# Trim and clean data of spaces
-reg_exp = "\\s\\s+"
 data = tweets_csv \
     .select("text", col("target").cast("Int").alias("label"))
 
-# Split the data into train and test
-splits = data.randomSplit([0.6, 0.4], 1234)
-train = splits[0]
-test = splits[1]
-train_rows = train.count()
-test_rows = test.count()
 
-print(f"Training data rows: {train_rows}")
-print(f"Testing data rows: {test_rows}")
+# Function to clean data
+def clean_data(ds: DataFrame) -> DataFrame:
+    def html_decoding(text):
+        return BeautifulSoup(text, 'html.parser').get_text()
 
-train.show(10, False)
+    udf_html_decoding = udf(html_decoding)
 
-
-# HTML decoding
-def html_decoding(text):
-    return BeautifulSoup(text, 'html.parser').get_text()
-
-
-udf_html_decoding = udf(html_decoding)
-
-htmlDecodedTrain = train.select(udf_html_decoding(col('text')).alias("text"), "label")
-
-# Remove mentions
-removeMentionsTrain = htmlDecodedTrain.select(regexp_replace(col("text"), "@[A-Za-z0-9_.]+", "").alias("text"), "label")
-
-# Remove URLs
-removeURLTrain = removeMentionsTrain.select(regexp_replace(col("text"), "https?://[A-Za-z0-9./]+", "").alias("text"), "label")
-
-# Remove hashtags, numbers, punctuation
-onlyLettersTrain = removeURLTrain.select(regexp_replace(col("text"), "[^a-zA-Z]", " ").alias("text"), "label")
+    return ds \
+        .select(udf_html_decoding(col('text')).alias("text"), "label") \
+        .select(regexp_replace(col("text"), "@[A-Za-z0-9_.]+", "").alias("text"), "label") \
+        .select(regexp_replace(col("text"), "https?://[A-Za-z0-9./]+", "").alias("text"), "label") \
+        .select(regexp_replace(col("text"), "[^a-zA-Z]", " ").alias("text"), "label") \
+        .select(trim(col("text")).alias("text"), "label") \
+        .select(regexp_replace(col("text"), "\\s\\s+", " ").alias("text"), "label")
 
 
-# Trim and clean data of spaces
-cleanTrain = onlyLettersTrain \
-    .select(trim(col("text")).alias("text"), "label") \
-    .select(regexp_replace(col("text"), reg_exp, " ").alias("text"), "label")
-cleanTrain.show(10, False)
+# Split data in train and test
+splits = data.randomSplit([0.98, 0.02], seed=2000)
+train_ds = splits[0]
+test_ds = splits[1]
 
-# Tokenize data
+# Clean data
+clean_train_ds = clean_data(train_ds)
+clean_test_ds = clean_data(test_ds)
+
+# Create pipeline
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
-tokenizedTrain = tokenizer.transform(cleanTrain)
-tokenizedTrain.show(10, False)
+stopwords = StopWordsRemover(inputCol="words", outputCol="meaningful_words")
+# hashtf = HashingTF(numFeatures=2**16, inputCol="meaningful_words", outputCol='tf')
+cv = CountVectorizer(vocabSize=2**16, inputCol="meaningful_words", outputCol='cv')
+idf = IDF(inputCol='cv', outputCol="features", minDocFreq=5)
+label_stringIdx = StringIndexer(inputCol="label", outputCol="labelIdx")
+pipeline = Pipeline(stages=[tokenizer, stopwords, cv, idf, label_stringIdx])
 
-# Removing stop words
-swr = StopWordsRemover(inputCol=tokenizer.getOutputCol(), outputCol="meaningful_words")
-swrTrain = swr.transform(tokenizedTrain)
+pipelineFit = pipeline.fit(clean_train_ds)
+train_df = pipelineFit.transform(clean_train_ds)
+test_df = pipelineFit.transform(clean_test_ds)
 
-# Hashing feature
-hashTf = HashingTF(inputCol=swr.getOutputCol(), outputCol="features")
-numericTrain = hashTf.transform(swrTrain).select(
-    'label', 'meaningful_words', 'features'
-)
+# LR Model
+lr = LogisticRegression(maxIter=100, labelCol="labelIdx")
+lrModel = lr.fit(train_df)
+predictions = lrModel.transform(test_df)
 
-# Train model
-nb = NaiveBayes(featuresCol="features", labelCol="label", smoothing=1.0, modelType="multinomial")
-model = nb.fit(numericTrain)
-print("Training is done!")
+# # NB Model
+# nb = NaiveBayes()
+# nbModel = nb.fit(train_df)
+# predictions = nbModel.transform(test_df)
 
-# Prepare testing data
-cleanTest = test\
-    .select(udf_html_decoding(col('text')).alias("text"), "label") \
-    .select(regexp_replace(col("text"), "@[A-Za-z0-9_.]+", "").alias("text"), "label") \
-    .select(regexp_replace(col("text"), "https?://[A-Za-z0-9./]+", "").alias("text"), "label") \
-    .select(regexp_replace(col("text"), "[^a-zA-Z]", " ").alias("text"), "label") \
-    .select(trim(col("text")).alias("text"), "label") \
-    .select(regexp_replace(col("text"), reg_exp, " ").alias("text"), "label")
+# Random Forest Model
+# rf = RandomForestClassifier(labelCol="labelIdx")
+# rfModel = rf.fit(train_df)
+# predictions = rfModel.transform(test_df)
 
-cleanTest.show(10, False)
+predictions.show(20, False)
 
-tokenizedTest = tokenizer.transform(cleanTest)
-swrTest = swr.transform(tokenizedTest)
-numericTest = hashTf.transform(swrTest).select(
-    'label', 'meaningful_words', 'features'
-)
+accuracy = predictions\
+               .filter("labelIdx == prediction")\
+               .count() / float(test_df.count())
 
-# Predict
-predictions = model.transform(numericTest)
-predictions.show(5, False)
+print(f"Test set accuracy = {accuracy}")
 
 # Accuracy
-evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
+evaluator = MulticlassClassificationEvaluator(labelCol="labelIdx", predictionCol="prediction", metricName="accuracy")
 accuracy = evaluator.evaluate(predictions)
-print(f"Test set accuracy = {accuracy}")
+print(f"Test set with evaluator accuracy = {accuracy}")
