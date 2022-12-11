@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
-import axios from 'axios';
 import TweetsDashboard from "./components/Dashboard";
-import {Button, Container, CssBaseline} from "@mui/material";
-import RefreshIcon from '@mui/icons-material/Refresh';
+import socketio from 'socket.io-client';
 
 const theme = createTheme({
     palette: {
@@ -12,43 +10,35 @@ const theme = createTheme({
 });
 
 const App = () => {
-    // Define the endpoint for the JSON data
-    const endpoint = 'http://127.0.0.1:5000/statistics';
+  // Use React state to store the data from the endpoint
+  const [data, setData] = useState(null);
 
-    // Use React state to store the data from the endpoint
-    const [data, setData] = useState(null);
+  // Initialize a websocket connection to the Flask backend
+  const socket = socketio('http://127.0.0.1:5001/');
 
-    // Define a function to fetch the data from the endpoint
-    const fetchData = () => {
-        axios.get(endpoint)
-            .then(response => setData(response.data))
-            .catch(error => console.error(error));
-    };
+  socket.on('UPDATE', (updates) => {
+    // Update the frontend with the new data from the updates
+    setData(updates);
+  });
+
+  // Send a request to the Flask backend to get updates every second
+  useEffect(() => {
+    // Send an HTTP request to the webhook URL every second
+    const interval = setInterval(() => {
+      socket.emit('GET_UPDATES');
+    }, 1000);
+
+    return () => clearInterval(interval);
+  });
 
     return (
       <ThemeProvider theme={theme}>
-          <Container align={"center"} >
-              {!data &&
-                  <Container style={{marginTop: theme.spacing(50)}}>
-                          <Button variant="contained" endIcon={<RefreshIcon />} onClick={fetchData}>
-                              Refresh
-                          </Button>
-                  </Container>
-              }
-
-              {data && (
-                  <TweetsDashboard data={data} />
-              )}
-
-              {data &&
-                  <Container>
-                      <Button variant="contained" endIcon={<RefreshIcon />} onClick={fetchData}>
-                          Refresh
-                      </Button>
-                  </Container>
-              }
-          </Container>
-          {/*<CssBaseline></CssBaseline>*/}
+          <div>
+            {/* If the data is available, display it in a dashboard */}
+            {data && (
+                <TweetsDashboard data={data} />
+            )}
+          </div>
       </ThemeProvider>
     );
 };
