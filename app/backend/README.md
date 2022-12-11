@@ -8,4 +8,5 @@ source /name_for_your_virtual_env/bin/activate
 
 ## Add dependencies
 pip install boto3
+
 pip install flask_cors
