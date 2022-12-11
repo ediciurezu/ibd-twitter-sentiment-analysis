@@ -55,10 +55,10 @@ export const Chart = css`
     margin-top: 10px;
     width: 56px;
     &:hover {
-    opacity: 0.8;
+      opacity: 0.8;
     }
     @media (max-width: 420px) {
-    width: 34px;
+      width: 34px;
     }
 `;
 

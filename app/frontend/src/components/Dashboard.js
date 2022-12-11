@@ -56,7 +56,7 @@ const TweetsDashboard = ({data}) => {
                         </Paper>
                     </Grid>
 
-                    <Grid item xs={8}>
+                    <Grid item xs={12}>
                         <Box display="flex" style={{alignContent: "center"}}>
                             <BarChart data={data}></BarChart>
                         </Box>
