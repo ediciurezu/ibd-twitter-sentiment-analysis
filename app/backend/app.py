@@ -3,7 +3,7 @@ import boto3
 import json
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-from tweet_processer import TweetProcessor
+from tweet_processor import TweetProcessor
 
 # Initialize and configure the Flask app
 app = Flask(__name__)
@@ -45,12 +45,17 @@ def read_all_data():
 
     # Get a list of the objects in the bucket
     objects = response['Contents']
+    # Keep only .json files from tweets/
+    objects = filter(lambda obj: obj['Key'].startswith('tweets/') \
+        and obj['Key'].endswith('.json'), objects)
 
     # Print the names of the objects in the bucket
     result = []
     for obj in objects:
         file_name = obj['Key']
-        result += json.loads(read_data(file_name))
+        raw_data = read_data(file_name)
+        data = TweetProcessor.process_raw_tweets(raw_data)
+        result += data
     return result
 
 

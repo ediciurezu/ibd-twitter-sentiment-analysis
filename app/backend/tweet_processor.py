@@ -1,5 +1,5 @@
 import threading
-
+import json
 
 class TwitterFilteringTask(threading.Thread):
     def __init__(self, unprocessed_tweets: list, sentiment: int):
@@ -10,7 +10,7 @@ class TwitterFilteringTask(threading.Thread):
 
     def run(self):
         self.result = list(
-            map(lambda tweet: tweet['tweet_text'],
+            map(lambda tweet: tweet['text'],
                 filter(lambda tweet: tweet['sentiment'] == self.sentiment, self.unprocessed_tweets)
                 )
         )
@@ -23,8 +23,25 @@ class TwitterFilteringTask(threading.Thread):
 class TweetProcessor:
 
     @staticmethod
+    def process_raw_tweets(data: str) -> str:
+        '''
+        Turns the raw list of strings into a valid json array of tweets
+        '''
+        split_data = data.splitlines()
+        result = []
+        print(split_data)
+        for data in split_data:
+            print(data)
+            result.append(json.loads(data))
+        return result
+
+
+    @staticmethod
     def get_statistics(unprocessed_tweets: list) -> dict:
         '''
+        Creates a json/dict containing statistical data, and two lists containing all positive
+            and negative tweets
+
         Args:
             unprocessed_tweets (list) the list of tweet data
 
