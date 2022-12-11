@@ -22,6 +22,7 @@ session = boto3.Session(
 )
 s3 = session.resource('s3')
 
+
 # Returns all data from a specific file
 @app.route('/read/<file>', methods=['GET'])
 def read_data(file):
@@ -30,13 +31,13 @@ def read_data(file):
     body = obj.get()['Body'].read().decode('utf-8')
     return body
 
+
 # Returns data from all files
 @app.route('/read_all', methods=['GET'])
 def read_all_data():
-
     client = session.client('s3')
     response = client.list_objects_v2(Bucket=bucket_name)
-    
+
     # Get a list of the objects in the bucket
     objects = response['Contents']
 
@@ -48,11 +49,13 @@ def read_all_data():
 
     return result
 
+
 # Returns a dictionary containing total, positive and negative tweets
 @app.route('/statistics', methods=['GET'])
 def get_statistics():
     unprocessed_tweets = read_all_data()
     return TweetProcesser.get_statistics(unprocessed_tweets)
+
 
 if __name__ == '__main__':
     app.run()

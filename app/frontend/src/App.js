@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
 import axios from 'axios';
-import TweetsDashboard from "./dashboard";
+import TweetsDashboard from "./components/Dashboard";
+
+const theme = createTheme();
 
 const App = () => {
   // Define the endpoint for the JSON data
@@ -19,15 +22,17 @@ const App = () => {
   };
 
   return (
-      <div>
-        {/* Display a button to fetch the data */}
-        <button onClick={fetchData}>Refresh</button>
+      <ThemeProvider theme={theme}>
+          <div>
+            {/* Display a button to fetch the data */}
+            <button onClick={fetchData}>Refresh</button>
 
-        {/* If the data is available, display it in a dashboard */}
-        {data && (
-            <TweetsDashboard data={data} />
-        )}
-      </div>
+            {/* If the data is available, display it in a dashboard */}
+            {data && (
+                <TweetsDashboard data={data} />
+            )}
+          </div>
+      </ThemeProvider>
   );
 };
 
