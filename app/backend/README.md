@@ -1,12 +1,4 @@
 ## Create python virtual environment:
-cd /app/backend
+chmod +x virtual_env.sh
 
-python3 -m venv name_for_your_virtual_env
-
-## Activate python virtual environment:
-source /name_for_your_virtual_env/bin/activate
-
-## Add dependencies
-pip install boto3
-
-pip install flask_cors
+./virtual_env.sh
