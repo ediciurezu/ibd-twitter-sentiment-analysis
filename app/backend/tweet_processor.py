@@ -29,9 +29,7 @@ class TweetProcessor:
         '''
         split_data = data.splitlines()
         result = []
-        print(split_data)
         for data in split_data:
-            print(data)
             result.append(json.loads(data))
         return result
 
