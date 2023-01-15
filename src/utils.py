@@ -65,7 +65,7 @@ def read_train_data(spark: SparkSession) -> DataFrame:
         .read.format("csv") \
         .option("header", "false") \
         .schema(schema) \
-        .csv("../data/training.1600000.processed.noemoticon.csv") \
+        .csv("s3a://test-ibd/training-data/tweets-dataset.csv") \
         .select("*") \
         .orderBy(rand()) \
         .select("text", col("target").cast("Int").alias("label"))
