@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
-import TweetsDashboard from "./components/Dashboard";
+import RedditDashboard from "./components/Dashboard";
 import socketio from 'socket.io-client';
 
 const theme = createTheme({
@@ -36,7 +36,7 @@ const App = () => {
           <div>
             {/* If the data is available, display it in a dashboard */}
             {data && (
-                <TweetsDashboard data={data} />
+                <RedditDashboard data={data} />
             )}
           </div>
       </ThemeProvider>
