@@ -26,7 +26,7 @@ const App = () => {
     // Send an HTTP request to the webhook URL every second
     const interval = setInterval(() => {
       socket.emit('GET_UPDATES');
-    }, 1000);
+    }, 10000);
 
     return () => clearInterval(interval);
   });
